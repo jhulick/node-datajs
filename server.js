@@ -95,4 +95,4 @@ http.createServer(function (req, res) {
            res.writeHead(500, { 'Content-Type': 'text/plain' });
            res.end(error.message);
         });
-}).listen(process.env.PORT);
+}).listen(process.env.PORT ||  process.env.VCAP_APP_PORT);
