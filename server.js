@@ -81,18 +81,30 @@ OData.defaultHttpClient.request = function (request, success, error) {
 };
     
 http.createServer(function (req, res) {
+    var host = "http://services.odata.org";
+    if ( req.url.substring(0,5) == '/sap/' ) {
+        host = "http://gw.esworkplace.sap.com";
+    }       
+    var headers = {};
+    for ( var header in req.headers ) {
+        var name = header.toLowerCase();
+        if ( name == "authorization" || 
+             name == "accept") {
+            headers[header] = req.headers[header];
+        }
+    }
     var request = { 
-            requestUri:  "http://services.odata.org" + req.url, 
+            requestUri:  host + req.url, 
             method: req.method, 
-            headers: { "Accept": "application/atomsvc+xml;q=0.9,application/atom+xml;q=0.7,application/xml;q=0.5" } 
+            headers: headers 
         };
     OData.request( request, 
-        function (data) { 
-            res.writeHead(res.statusCode, { 'Content-Type': 'application/json' });
+        function (data,  response) { 
+            res.writeHead(response.statusCode, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(data));
         },
         function (error) {
-           res.writeHead(500, { 'Content-Type': 'text/plain' });
+           res.writeHead(error.response.statusCode, error.response.headers);
            res.end(error.message);
         });
 }).listen(process.env.PORT ||  process.env.VCAP_APP_PORT);
